@@ -2,7 +2,7 @@ import streamlit as st
 import joblib
 import numpy as np
 
-model = joblib.load("Diabetes.pkl")
+model = joblib.load('Diabetes.pkl')
 
 st.title("🔍 Diabetes Prediction Web App")
 
@@ -23,4 +23,5 @@ if st.button("Predict"):
         st.error(f"ผลทำนาย: เสี่ยงเป็นเบาหวาน (โอกาส {prob*100:.2f}%)")
     else:
         st.success(f"ผลทำนาย: ไม่เสี่ยง (โอกาส {prob*100:.2f}%)")
+
 
