@@ -8,7 +8,7 @@ st.set_page_config(page_title="Diabetes Prediction", page_icon="🩺", layout="c
 # =========================
 # Load model and dataset
 # =========================
-model = pickle.load(open("diabetes_model.pkl", "rb"))
+model = pickle.load(open("Diabetset.pkl", "rb"))
 df = pd.read_csv("diabetes.csv")
 
 # ค่าเฉลี่ยของคอลัมน์ต่าง ๆ
@@ -120,6 +120,7 @@ if st.button("ประเมินความเสี่ยง"):
         - ทานอาหารครบ 5 หมู่
         - ออกกำลังกายสม่ำเสมอ
         """)
+
 
 
 
