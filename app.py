@@ -8,8 +8,9 @@ st.set_page_config(page_title="Diabetes Prediction", page_icon="🩺", layout="c
 # =========================
 # Load model and dataset
 # =========================
-with open("Diabetset.pkl", "rb") as f:
-    model = pickle.load(f)
+import joblib
+model = joblib.load("Diabetset.pkl")
+
 
 df = pd.read_csv("diabetes.csv")
 
@@ -119,6 +120,7 @@ if st.button("ประเมินความเสี่ยง"):
         - ทานอาหารครบ 5 หมู่
         - ออกกำลังกายสม่ำเสมอ
         """)
+
 
 
 
