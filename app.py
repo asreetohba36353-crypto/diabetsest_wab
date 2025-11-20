@@ -19,7 +19,6 @@ RANGES = {
     "weight": (20.0, 250.0),
     "height": (100.0, 220.0),
 }
-
 # sensible median fallbacks if optional inputs are missing
 MEDIAN_FALLBACKS = {
     "Insulin": 80.0,
@@ -215,6 +214,7 @@ if submit:
 
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาดขณะทำนาย: {e}")
+
 
 
 
