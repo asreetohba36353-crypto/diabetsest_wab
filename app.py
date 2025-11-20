@@ -1,124 +1,132 @@
 import streamlit as st
-import pickle
+import joblib
 import numpy as np
-import pandas as pd
 
-st.set_page_config(page_title="Diabetes Prediction", page_icon="🩺", layout="centered")
+# โหลดโมเดล
+model = joblib.load("Diabetset.pkl")
 
-# =========================
-# Load model and dataset
-# =========================
-model = pickle.load(open("diabetes_model.pkl", "rb"))
-df = pd.read_csv("diabetes.csv")
+# ค่าเฉลี่ยจาก dataset (โบรเอามาจาก df.describe())
+AVG_GLUCOSE = 120
+AVG_INSULIN = 100
+AVG_SKIN = 25
 
-# ค่าเฉลี่ยของคอลัมน์ต่าง ๆ
-AVG_GLUCOSE = df["Glucose"].mean()
-AVG_INSULIN = df["Insulin"].mean()
-AVG_SKIN = df["SkinThickness"].mean()
+st.title("ระบบพยากรณ์โรคเบาหวาน")
 
-# =========================
-# Helper: mapping DPF
-# =========================
-def get_family_history_dpf(choice):
-    mapping = {
-        "ไม่มีใครเป็น": 0.1,
-        "มีคนในครอบครัว 1 คน": 0.3,
-        "มี 2 คน": 0.5,
-        "มีมากกว่า 2 คน": 1.0
-    }
-    return mapping.get(choice, 0.3)
+st.subheader("ข้อมูลพื้นฐาน")
 
+# อายุ
+age = st.number_input("อายุ (ปี)", min_value=10, max_value=100, value=30)
 
-# =========================
-# Input UI
-# =========================
-st.title("🩺 ระบบประเมินโอกาสเป็นเบาหวาน")
-
-st.subheader("ข้อมูลหลัก")
-
-age = st.number_input("อายุ (ปี)", 10, 100, 30)
-
-# BMI = นน./(ส่วนสูง^2)
-weight = st.number_input("น้ำหนัก (kg)", 20, 200, 60)
-height = st.number_input("ส่วนสูง (cm)", 120, 220, 165)
-bmi = weight / ((height / 100) ** 2)
-
-st.write(f"**BMI = {bmi:.2f}**")
+# น้ำหนัก + ส่วนสูง = คำนวณ BMI
+weight = st.number_input("น้ำหนัก (kg)", min_value=20.0, max_value=200.0, value=60.0)
+height = st.number_input("ส่วนสูง (cm)", min_value=120.0, max_value=220.0, value=170.0)
+bmi = weight / ((height/100)**2)
+st.write(f"**BMI ของคุณ:** {bmi:.2f}")
 
 # Glucose
-st.subheader("ระดับน้ำตาลในเลือด (Glucose)")
-unknown_glucose = st.checkbox("ไม่รู้ค่า Glucose")
+st.subheader("ระดับน้ำตาล (Glucose)")
 
-if unknown_glucose:
+glucose_unknown = st.checkbox("ไม่รู้ค่าระดับน้ำตาล (ใช้ค่าเฉลี่ยอัตโนมัติ)")
+
+if glucose_unknown:
     glucose = AVG_GLUCOSE
-    st.info(f"ใช้ค่าเฉลี่ยจากข้อมูล = {glucose:.1f}")
+    st.info(f"ใช้ค่าเฉลี่ยแทน: {glucose}")
 else:
-    glucose = st.number_input("กรอก Glucose", 40, 300, 120)
+    glucose = st.number_input(
+        "กรอกรระดับ Glucose",
+        min_value=40,
+        max_value=300,
+        value=100
+    )
 
 # Blood Pressure
-blood = st.number_input("ค่าความดัน (Diastolic)", 40, 140, 70)
+bp = st.number_input(
+    "ความดันโลหิต (Diastolic Blood Pressure)",
+    min_value=40,
+    max_value=140,
+    value=80
+)
 
-# Skin Thickness
-st.subheader("ความหนาผิวหนัง (SkinThickness)")
-unknown_skin = st.checkbox("ไม่รู้ค่า SkinThickness")
+# SkinThickness
+st.subheader("ความหนาผิวหนัง (Skin Thickness)")
 
-if unknown_skin:
+skin_unknown = st.checkbox("ไม่รู้ค่า Skin Thickness (ใช้ค่าเฉลี่ย)")
+
+if skin_unknown:
     skin = AVG_SKIN
-    st.info(f"ใช้ค่าเฉลี่ยจากข้อมูล = {skin:.1f}")
+    st.info(f"ใช้ค่าเฉลี่ยแทน: {skin}")
 else:
-    skin = st.number_input("SkinThickness", 5, 80, 20)
+    skin = st.number_input(
+        "Skin Thickness (mm)",
+        min_value=5,
+        max_value=80,
+        value=20
+    )
 
 # Insulin
-st.subheader("ระดับ Insulin")
-unknown_insulin = st.checkbox("ไม่รู้ค่า Insulin")
+st.subheader("ระดับอินซูลิน (Insulin)")
 
-if unknown_insulin:
+insulin_unknown = st.checkbox("ไม่รู้ค่า Insulin (ใช้ค่าเฉลี่ย)")
+
+if insulin_unknown:
     insulin = AVG_INSULIN
-    st.info(f"ใช้ค่าเฉลี่ย = {insulin:.1f}")
+    st.info(f"ใช้ค่าเฉลี่ยแทน: {insulin}")
 else:
-    insulin = st.number_input("Insulin", 10, 400, 85)
+    insulin = st.number_input(
+        "ระดับ Insulin",
+        min_value=10,
+        max_value=400,
+        value=100
+    )
 
-# Diabetes Pedigree Function
-st.subheader("ประวัติครอบครัวเป็นเบาหวาน")
-family = st.selectbox("เลือก", ["ไม่มีใครเป็น", "มีคนในครอบครัว 1 คน", "มี 2 คน", "มีมากกว่า 2 คน"])
-dpf = get_family_history_dpf(family)
+# DPF → mapping จากประวัติครอบครัว
+st.subheader("ประวัติครอบครัวเกี่ยวกับโรคเบาหวาน")
 
-preg = st.number_input("จำนวนครั้งที่ตั้งครรภ์", 0, 20, 1)
+family = st.selectbox(
+    "เลือกสถานะ",
+    [
+        "ไม่มีในครอบครัว",
+        "มีคนในครอบครัวสายตรง (พ่อ/แม่)",
+        "มีหลายคนในครอบครัว",
+        "พันธุกรรมแรงมาก"
+    ]
+)
 
+DPF_MAP = {
+    "ไม่มีในครอบครัว": 0.1,
+    "มีคนในครอบครัวสายตรง (พ่อ/แม่)": 0.5,
+    "มีหลายคนในครอบครัว": 1.0,
+    "พันธุกรรมแรงมาก": 2.0
+}
 
-# =========================
-# Prediction
-# =========================
-if st.button("ประเมินความเสี่ยง"):
-    features = np.array([[preg, glucose, blood, skin, insulin, bmi, dpf, age]])
+dpf = DPF_MAP[family]
+
+# ปุ่มพยากรณ์
+if st.button("คำนวณความเสี่ยง"):
+
+    features = np.array([[glucose, bmi, age, bp, insulin, dpf, skin]])
     prediction = model.predict(features)[0]
     prob = model.predict_proba(features)[0][1]
 
     st.subheader("ผลการประเมิน")
 
     if prediction == 1:
-        st.error(f"⚠ มีความเสี่ยง **สูง** ({prob*100:.2f}%)")
+        st.error(f"⚠ คุณมีความเสี่ยงสูงเป็นเบาหวาน ({prob*100:.2f}%)")
 
         st.warning("""
-        🔶 **คำแนะนำเบื้องต้น**
-        - ควรไปพบแพทย์เพื่อตรวจน้ำตาลในเลือด
-        - ออกกำลังกายอย่างน้อย 150 นาทีต่อสัปดาห์
-        - เลี่ยงอาหารหวาน มัน เค็ม
-        - ควบคุมน้ำหนักให้อยู่ในเกณฑ์ปกติ
+### 🔥 คำแนะนำเบื้องต้น
+- ควรพบแพทย์ตรวจน้ำตาลในเลือด (FBS / HbA1c)
+- ลดอาหารหวานและแป้งขัดสี
+- ควรออกกำลังกายสม่ำเสมอ
+- ควรตรวจซ้ำภายใน 3 เดือน
         """)
-
-        if bmi > 27:
-            st.info("💡 BMI สูงกว่าปกติ → ควรลดน้ำหนักลง 5–10%")
-        if glucose > 160:
-            st.info("💡 ค่าน้ำตาลสูงกว่าเกณฑ์ → เสี่ยงมากขึ้น")
     else:
-        st.success(f"✓ ความเสี่ยงต่ำ ({prob*100:.2f}%)")
-
+        st.success(f"คุณมีความเสี่ยงต่ำ ({prob*100:.2f}%)")
         st.info("""
-        💚 **คำแนะนำ**
-        - ดูแลสุขภาพให้ดีต่อเนื่อง
-        - ทานอาหารครบ 5 หมู่
-        - ออกกำลังกายสม่ำเสมอ
+### ✅ แนะนำเพิ่มเติม
+- ควบคุมน้ำหนักให้อยู่ในเกณฑ์
+- ออกกำลังกาย 3–5 วันต่อสัปดาห์
+- ลดน้ำตาลและอาหารทอด
         """)
 
 
