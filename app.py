@@ -12,7 +12,15 @@ import joblib
 model = joblib.load("Diabetset.pkl")
 
 
-df = pd.read_csv("diabetes.csv")
+import joblib
+
+model = joblib.load("Diabetset.pkl")
+
+# ค่าเฉลี่ยตั้งเอง เพื่อไม่ต้องใช้ CSV
+AVG_GLUCOSE = 120
+AVG_INSULIN = 80
+AVG_SKIN = 20
+
 
 # ค่าเฉลี่ยของคอลัมน์ต่าง ๆ
 AVG_GLUCOSE = df["Glucose"].mean()
@@ -120,6 +128,7 @@ if st.button("ประเมินความเสี่ยง"):
         - ทานอาหารครบ 5 หมู่
         - ออกกำลังกายสม่ำเสมอ
         """)
+
 
 
 
