@@ -23,7 +23,7 @@ RANGES = {
 # sensible median fallbacks if optional inputs are missing
 MEDIAN_FALLBACKS = {
     "Insulin": 80.0,
-    "SkinThickness": 20.0   # เพิ่มบรรทัดนี้
+    "SkinThickness": 20.0 
 }
 
 # DPF mapping (human-friendly dropdown -> numeric value)
@@ -215,6 +215,7 @@ if submit:
 
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาดขณะทำนาย: {e}")
+
 
 
 
