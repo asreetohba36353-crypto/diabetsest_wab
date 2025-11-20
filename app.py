@@ -8,11 +8,8 @@ st.set_page_config(page_title="Diabetes Prediction", page_icon="🩺", layout="c
 # =========================
 # Load model and dataset
 # =========================
-import pickle
-
 with open("Diabetset.pkl", "rb") as f:
     model = pickle.load(f)
-
 
 df = pd.read_csv("diabetes.csv")
 
@@ -33,7 +30,6 @@ def get_family_history_dpf(choice):
     }
     return mapping.get(choice, 0.3)
 
-
 # =========================
 # Input UI
 # =========================
@@ -47,7 +43,6 @@ age = st.number_input("อายุ (ปี)", 10, 100, 30)
 weight = st.number_input("น้ำหนัก (kg)", 20, 200, 60)
 height = st.number_input("ส่วนสูง (cm)", 120, 220, 165)
 bmi = weight / ((height / 100) ** 2)
-
 st.write(f"**BMI = {bmi:.2f}**")
 
 # Glucose
@@ -88,14 +83,13 @@ st.subheader("ประวัติครอบครัวเป็นเบา
 family = st.selectbox("เลือก", ["ไม่มีใครเป็น", "มีคนในครอบครัว 1 คน", "มี 2 คน", "มีมากกว่า 2 คน"])
 dpf = get_family_history_dpf(family)
 
-preg = st.number_input("จำนวนครั้งที่ตั้งครรภ์", 0, 20, 1)
-
-
 # =========================
 # Prediction
 # =========================
 if st.button("ประเมินความเสี่ยง"):
-    features = np.array([[preg, glucose, blood, skin, insulin, bmi, dpf, age]])
+    # **ต้องเป็น 7 features ตามโมเดล**
+    features = np.array([[glucose, bmi, age, blood, insulin, dpf, skin]])
+
     prediction = model.predict(features)[0]
     prob = model.predict_proba(features)[0][1]
 
@@ -106,7 +100,7 @@ if st.button("ประเมินความเสี่ยง"):
 
         st.warning("""
         🔶 **คำแนะนำเบื้องต้น**
-        - ควรไปพบแพทย์เพื่อตรวจน้ำตาลในเลือด
+        - ควรไปพบแพทย์เพื่อตรวจระดับน้ำตาลในเลือด
         - ออกกำลังกายอย่างน้อย 150 นาทีต่อสัปดาห์
         - เลี่ยงอาหารหวาน มัน เค็ม
         - ควบคุมน้ำหนักให้อยู่ในเกณฑ์ปกติ
@@ -125,6 +119,7 @@ if st.button("ประเมินความเสี่ยง"):
         - ทานอาหารครบ 5 หมู่
         - ออกกำลังกายสม่ำเสมอ
         """)
+
 
 
 
